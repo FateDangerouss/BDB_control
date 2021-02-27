@@ -6,7 +6,6 @@ class myGPIO:
         self.__disable_warning()
         self.setup(list)
     
-    
     def __disable_warning(self):
         GPIO.setwarnings(False)
     

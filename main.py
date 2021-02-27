@@ -1,26 +1,2 @@
 import gpio
 import time
-a = gpio.PWM(17, 1)
-b = gpio.myGPIO([18, 'IN'])
-while 1>0:
-    print(b.input(18))
-    if b.input(18) == 1:
-        a.start(1)
-        a.changefreq(165)
-        time.sleep(0.25)
-        a.changefreq(330)
-        time.sleep(0.25)
-        a.changefreq(330)
-        time.sleep(0.25)
-        a.changefreq(661)
-        time.sleep(0.25)
-        a.changefreq(330)
-        time.sleep(0.25)
-        a.changefreq(661)
-        time.sleep(0.25)
-        a.changefreq(294)
-        time.sleep(0.25)
-        a.changefreq(661)
-        time.sleep(0.25)
-        a.stop()
-    time.sleep(1)
