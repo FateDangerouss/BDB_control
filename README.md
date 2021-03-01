@@ -1,2 +1,2 @@
 # Fuck
-## This is the BDB_control module.
+## This is the BDB_sensor module.
