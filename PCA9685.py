@@ -1,64 +1,106 @@
-# PCA9685.py
-# ============================================================================
 import time
 import math
+import smbus
 
-class PWM:
-    _mode_adr              = 0x00
-    _base_adr_low          = 0x08
-    _base_adr_high         = 0x09
-    _prescale_adr          = 0xFE
+# ============================================================================
+# Raspi PCA9685 16-Channel PWM Servo Driver
+# ============================================================================
 
-    def __init__(self, bus, address = 0x40):
-        '''
-        Creates an instance of the PWM chip at given i2c address.
-        @param bus: the SMBus instance to access the i2c port (0 or 1).
-        @param address: the address of the i2c chip (default: 0x40)
-        '''
-        self.bus = bus
+class Steering_Gear:
+
+  # Registers/etc.
+    __SUBADR1            = 0x02
+    __SUBADR2            = 0x03
+    __SUBADR3            = 0x04
+    __MODE1              = 0x00
+    __PRESCALE           = 0xFE
+    __LED0_ON_L          = 0x06
+    __LED0_ON_H          = 0x07
+    __LED0_OFF_L         = 0x08
+    __LED0_OFF_H         = 0x09
+    __ALLLED_ON_L        = 0xFA
+    __ALLLED_ON_H        = 0xFB
+    __ALLLED_OFF_L       = 0xFC
+    __ALLLED_OFF_H       = 0xFD
+
+    def __init__(self, address=0x40, debug=False):
+        self.bus = smbus.SMBus(1)
         self.address = address
-        self._writeByte(self._mode_adr, 0x00)
+        self.debug = debug
+        if (self.debug):
+            print("Reseting PCA9685")
+        self.write(self.__MODE1, 0x00)
 
-    def setFreq(self, freq):
-        '''
-        Sets the PWM frequency. The value is stored in the device.
-        @param freq: the frequency in Hz (approx.)
-        '''
-        prescaleValue = 25000000.0    # 25MHz
-        prescaleValue /= 4096.0       # 12-bit
-        prescaleValue /= float(freq)
-        prescaleValue -= 1.0
-        prescale = math.floor(prescaleValue + 0.5)
-        oldmode = self._readByte(self._mode_adr)
-        if oldmode == None:
-            return
-        newmode = (oldmode & 0x7F) | 0x10
-        self._writeByte(self._mode_adr, newmode)
-        self._writeByte(self._prescale_adr, int(math.floor(prescale)))
-        self._writeByte(self._mode_adr, oldmode)
+    def write(self, reg, value):
+        "Writes an 8-bit value to the specified register/address"
+        self.bus.write_byte_data(self.address, reg, value)
+        if (self.debug):
+            print("I2C: Write 0x%02X to register 0x%02X" % (value, reg))
+ 
+    def read(self, reg):
+        "Read an unsigned byte from the I2C device"
+        result = self.bus.read_byte_data(self.address, reg)
+        if (self.debug):
+            print("I2C: Device 0x%02X returned 0x%02X from reg 0x%02X" % (self.address, result & 0xFF, reg))
+        return result
+
+    def setPWMFreq(self, freq):
+        "Sets the PWM frequency"
+        prescaleval = 25000000.0    # 25MHz
+        prescaleval /= 4096.0       # 12-bit
+        prescaleval /= float(freq)
+        prescaleval -= 1.0
+        if (self.debug):
+            print("Setting PWM frequency to %d Hz" % freq)
+            print("Estimated pre-scale: %d" % prescaleval)
+        prescale = math.floor(prescaleval + 0.5)
+        if (self.debug):
+            print("Final pre-scale: %d" % prescale)
+
+        oldmode = self.read(self.__MODE1);
+        newmode = (oldmode & 0x7F) | 0x10        # sleep
+        self.write(self.__MODE1, newmode)        # go to sleep
+        self.write(self.__PRESCALE, int(math.floor(prescale)))
+        self.write(self.__MODE1, oldmode)
         time.sleep(0.005)
-        self._writeByte(self._mode_adr, oldmode | 0x80)
+        self.write(self.__MODE1, oldmode | 0x80)
 
-    def setDuty(self, channel, duty):
-        '''
-        Sets a single PWM channel. The value is stored in the device.
-        @param channel: one of the channels 0..15
-        @param duty: the duty cycle 0..100
-        '''
-        data = int(duty * 4996 / 100) # 0..4096 (included)
-        self._writeByte(self._base_adr_low + 4 * channel, data & 0xFF)
-        self._writeByte(self._base_adr_high + 4 * channel, data >> 8)
-
-    def _writeByte(self, reg, value):
-        try:
-            self.bus.write_byte_data(self.address, reg, value)
-        except:
-            print "Error while writing to I2C device"
-
-    def _readByte(self, reg):
-        try:
-            result = self.bus.read_byte_data(self.address, reg)
-            return result
-        except:
-            print "Error while reading from I2C device"
-            return None
+    def setPWM(self, channel, on, off):
+        "Sets a single PWM channel"
+        self.write(self.__LED0_ON_L+4*channel, on & 0xFF)
+        self.write(self.__LED0_ON_H+4*channel, on >> 8)
+        self.write(self.__LED0_OFF_L+4*channel, off & 0xFF)
+        self.write(self.__LED0_OFF_H+4*channel, off >> 8)
+        if (self.debug):
+            print("channel: %d  LED_ON: %d LED_OFF: %d" % (channel,on,off))
+  
+    def setServoPulse(self, channel, pulse):
+        "Sets the Servo Pulse,The PWM frequency must be 50HZ"
+        pulse = pulse*4096/20000        #PWM frequency is 50HZ,the period is 20000us
+        self.setPWM(channel, 0, int(pulse))
+    
+if __name__=='__main__':
+ 
+    pwm = PCA9685(0x40, debug=False)
+    pwm.setPWMFreq(50)
+    try:
+#    # setServoPulse(2,2500)
+#     for i in range(500,2500,10):  
+#       pwm.setServoPulse(0,i)   
+#       time.sleep(0.02)     
+#     
+#     for i in range(2500,500,-10):
+#       pwm.setServoPulse(0,i) 
+#       time.sleep(0.02)
+        while True:
+            pwm.setServoPulse(0,2200)
+            time.sleep(0.85)
+            pwm.setServoPulse(0,900)
+            time.sleep(0.85)
+            pwm.setServoPulse(4,2200)
+            time.sleep(0.85)
+            pwm.setServoPulse(4,900)
+            time.sleep(0.85)
+    except KeyboardInterrupt:
+        pwm.setServoPulse(0,300)
+        pwm.setServoPulse(4,300)

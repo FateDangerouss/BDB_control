@@ -1,3 +1,4 @@
-from smbus import SMBus
-from PCA9685 import PWM
-import time
+import robotic_arm
+
+ra1 = robotic_arm.RoboticArm(0)
+ra1.run()
