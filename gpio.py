@@ -13,6 +13,7 @@ class myGPIO:
         GPIO.setwarnings(True)
     
     def setup(self, list):
+        GPIO.setmode(GPIO.BCM)
         i = 0
         while i < len(list):
             if list[i+1] == "IN":
@@ -22,9 +23,11 @@ class myGPIO:
             i = i + 2
     
     def input(self, pin):
+        GPIO.setmode(GPIO.BCM)
         return GPIO.input(pin)
     
     def output(self, pin, type):
+        GPIO.setmode(GPIO.BCM)
         if type == "LOW":
             GPIO.output(pin, 0)
         if type == "HIGH":

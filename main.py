@@ -1,7 +1,8 @@
 import robotic_arm
 import time
 import gpio
-import threading
+
+state = 0
 
 pm_1 = 3
 pm_2 = 4
@@ -26,33 +27,41 @@ ra_3 = robotic_arm.RoboticArm(8)
 
 
 while True:
-    if IO.input(18) == 1:
-        IO.output(17, 'HIGH')
-        IO.output(6, 'HIGH')
-        time.sleep(pm_1)
-        IO.output(6, 'LOW')
-        ra_1.run()
-        IO.output(17, 'LOW')
-    elif IO.input(27) == 1:
-        IO.output(17, 'HIGH')
-        IO.output(6, 'HIGH')
-        time.sleep(pm_2)
-        IO.output(6, 'LOW')
-        ra_2.run()
-        IO.output(17, 'LOW')
-    elif IO.input(22) == 1:
-        IO.output(17, 'HIGH')
-        IO.output(6, 'HIGH')
-        time.sleep(pm_3)
-        IO.output(6, 'LOW')
-        ra_3.run()
-        IO.output(17, 'LOW')
-    elif IO.input(23) == 1:
-        IO.output(17, 'HIGH')
-        IO.output(6, 'HIGH')
-        time.sleep(pm_4)
-        IO.output(6, 'LOW')
-        IO.output(17, 'LOW')
-        print("Fuck                                                                                           ")
-    else:
-        time.sleep(0.1)
+    if state == 0:
+        if IO.input(18) == 1:
+            state = 1
+            IO.output(17, 'HIGH')
+            IO.output(6, 'HIGH')
+            time.sleep(pm_1)
+            IO.output(6, 'LOW')
+            ra_1.run()
+            IO.output(17, 'LOW')
+            state = 0
+        elif IO.input(27) == 1:
+            state = 1
+            IO.output(17, 'HIGH')
+            IO.output(6, 'HIGH')
+            time.sleep(pm_2)
+            IO.output(6, 'LOW')
+            ra_2.run()
+            IO.output(17, 'LOW')
+            state = 0
+        elif IO.input(22) == 1:
+            state = 1
+            IO.output(17, 'HIGH')
+            IO.output(6, 'HIGH')
+            time.sleep(pm_3)
+            IO.output(6, 'LOW')
+            ra_3.run()
+            IO.output(17, 'LOW')
+            state = 0
+        elif IO.input(23) == 1:
+            state = 1
+            IO.output(17, 'HIGH')
+            IO.output(6, 'HIGH')
+            time.sleep(pm_4)
+            IO.output(6, 'LOW')
+            IO.output(17, 'LOW')
+            state = 0
+        else:
+            time.sleep(0.1)
