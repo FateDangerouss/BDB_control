@@ -81,7 +81,7 @@ class Steering_Gear:
     
 if __name__=='__main__':
  
-    pwm = PCA9685(0x40, debug=False)
+    pwm = Steering_Gear(0x40, debug=False)
     pwm.setPWMFreq(50)
     try:
 #    # setServoPulse(2,2500)
@@ -92,15 +92,18 @@ if __name__=='__main__':
 #     for i in range(2500,500,-10):
 #       pwm.setServoPulse(0,i) 
 #       time.sleep(0.02)
-        while True:
-            pwm.setServoPulse(0,2200)
-            time.sleep(0.85)
-            pwm.setServoPulse(0,900)
-            time.sleep(0.85)
-            pwm.setServoPulse(4,2200)
-            time.sleep(0.85)
-            pwm.setServoPulse(4,900)
-            time.sleep(0.85)
+        for i in range(0,3000,50):
+#             pwm.setServoPulse(0,2200)
+#             time.sleep(0.85)
+#             pwm.setServoPulse(0,900)
+#             time.sleep(0.85)
+#             pwm.setServoPulse(4,2200)
+#             time.sleep(0.85)
+#             pwm.setServoPulse(4,900)
+#             time.sleep(0.85)
+            pwm.setServoPulse(12,i)
+            time.sleep(0.5)
     except KeyboardInterrupt:
         pwm.setServoPulse(0,300)
         pwm.setServoPulse(4,300)
+        pwm.setServoPulse(12,300)
